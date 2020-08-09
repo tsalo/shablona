@@ -1,21 +1,21 @@
-from __future__ import absolute_import, division, print_function
-from os.path import join as pjoin
+import importlib.util
+import json
+import os.path as op
 
-# Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
-_version_major = 0
-_version_minor = 1
-_version_micro = ''  # use '' for first of series, number for 1 and above
-_version_extra = 'dev'
-# _version_extra = ''  # Uncomment this for full releases
+spec = importlib.util.spec_from_file_location(
+    "_version", op.join(op.dirname(__file__), "shablona/_version.py")
+)
+_version = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(_version)
 
-# Construct full version string from these.
-_ver = [_version_major, _version_minor]
-if _version_micro:
-    _ver.append(_version_micro)
-if _version_extra:
-    _ver.append(_version_extra)
+VERSION = _version.get_versions()["version"]
+del _version
 
-__version__ = '.'.join(map(str, _ver))
+# Get list of authors from Zenodo file
+with open(op.join(op.dirname(__file__), ".zenodo.json"), "r") as fo:
+    zenodo_info = json.load(fo)
+authors = [author["name"] for author in zenodo_info["creators"]]
+authors = [author.split(", ")[1] + " " + author.split(", ")[0] for author in authors]
 
 CLASSIFIERS = ["Development Status :: 3 - Alpha",
                "Environment :: Console",
@@ -25,10 +25,11 @@ CLASSIFIERS = ["Development Status :: 3 - Alpha",
                "Programming Language :: Python",
                "Topic :: Scientific/Engineering"]
 
-# Description should be a one-liner:
-description = "shablona: a template for small scientific Python projects"
-# Long description will go up on the pypi page
-long_description = """
+NAME = "shablona"
+MAINTAINER = "Ariel Rokem"
+MAINTAINER_EMAIL = "arokem@gmail.com"
+DESCRIPTION = "shablona: a template for small scientific Python projects"
+LONG_DESCRIPTION = """
 
 Shablona
 ========
@@ -55,22 +56,28 @@ All trademarks referenced herein are property of their respective holders.
 Copyright (c) 2015--, Ariel Rokem, The University of Washington
 eScience Institute.
 """
-
-NAME = "shablona"
-MAINTAINER = "Ariel Rokem"
-MAINTAINER_EMAIL = "arokem@gmail.com"
-DESCRIPTION = description
-LONG_DESCRIPTION = long_description
 URL = "http://github.com/uwescience/shablona"
 DOWNLOAD_URL = ""
 LICENSE = "MIT"
 AUTHOR = "Ariel Rokem"
 AUTHOR_EMAIL = "arokem@gmail.com"
 PLATFORMS = "OS Independent"
-MAJOR = _version_major
-MINOR = _version_minor
-MICRO = _version_micro
-VERSION = __version__
-PACKAGE_DATA = {'shablona': [pjoin('data', '*')]}
-REQUIRES = ["numpy"]
+PACKAGE_DATA = {'shablona': [op.join('data', '*')]}
+REQUIRES = [
+    "numpy",
+    "scipy",
+    "matplotlib",
+    "pandas",
+]
+EXTRA_REQUIRES = {
+    "dev": [
+        "pytest==4.6.3",
+        "coveralls",
+        "pytest-cov",
+        "flake8",
+    ],
+    "doc": [
+        "sphinx>=3.1.1",
+    ]
+}
 PYTHON_REQUIRES = ">= 3.5"
